@@ -19,6 +19,8 @@
 
 package org.elasticsearch.http.netty;
 
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.http.netty.pipelining.OrderedUpstreamMessageEvent;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -36,11 +38,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
     private final NettyHttpServerTransport serverTransport;
     private final boolean httpPipeliningEnabled;
     private final boolean detailedErrorsEnabled;
+    private final ESLogger logger;
 
     public HttpRequestHandler(NettyHttpServerTransport serverTransport, boolean detailedErrorsEnabled) {
         this.serverTransport = serverTransport;
         this.httpPipeliningEnabled = serverTransport.pipelining;
         this.detailedErrorsEnabled = detailedErrorsEnabled;
+        this.logger = Loggers.getLogger(getClass());
     }
 
     @Override
@@ -57,6 +61,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         // the netty HTTP handling always copy over the buffer to its own buffer, either in NioWorker internally
         // when reading, or using a cumalation buffer
         NettyHttpRequest httpRequest = new NettyHttpRequest(request, e.getChannel());
+
+        // log the incoming request.
+        logger.info(httpRequest.toString());
         if (oue != null) {
             serverTransport.dispatchRequest(httpRequest, new NettyHttpChannel(serverTransport, httpRequest, oue, detailedErrorsEnabled));
         } else {

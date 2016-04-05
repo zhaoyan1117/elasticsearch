@@ -23,6 +23,8 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.io.stream.ReleasableBytesStreamOutput;
 import org.elasticsearch.common.lease.Releasable;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.netty.ReleaseChannelFutureListener;
 import org.elasticsearch.http.HttpChannel;
 import org.elasticsearch.http.netty.cors.CorsHandler;
@@ -61,12 +63,15 @@ public class NettyHttpChannel extends HttpChannel {
     private final org.jboss.netty.handler.codec.http.HttpRequest nettyRequest;
     private OrderedUpstreamMessageEvent orderedUpstreamMessageEvent = null;
 
+    private final ESLogger logger;
+
     public NettyHttpChannel(NettyHttpServerTransport transport, NettyHttpRequest request,
                             boolean detailedErrorsEnabled) {
         super(request, detailedErrorsEnabled);
         this.transport = transport;
         this.channel = request.getChannel();
         this.nettyRequest = request.request();
+        this.logger = Loggers.getLogger(getClass());
     }
 
     public NettyHttpChannel(NettyHttpServerTransport transport, NettyHttpRequest request,
@@ -137,6 +142,12 @@ public class NettyHttpChannel extends HttpChannel {
                     }
                 }
             }
+
+            // Log the response that will be sent.
+            logger.info(String.format(
+                "%s\nContent:%s",
+                resp.toString(),
+                new String(resp.getContent().array())));
 
             ChannelFuture future;
 

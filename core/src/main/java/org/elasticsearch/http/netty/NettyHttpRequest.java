@@ -67,6 +67,15 @@ public class NettyHttpRequest extends HttpRequest {
     }
 
     @Override
+    public String toString() {
+        return String.format(
+            "Method: %s | Url: %s | Content: %s",
+            request.getMethod().toString(),
+            request.getUri(),
+            new String(content.toBytes()));
+    }
+
+    @Override
     public Method method() {
         HttpMethod httpMethod = request.getMethod();
         if (httpMethod == HttpMethod.GET)
